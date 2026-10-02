@@ -3,7 +3,7 @@ import { AuthProvider } from "@/lib/auth/provider";
 import { PreviewHostBridge } from "@/components/preview-host-bridge";
 import appCss from "../styles.css?url";
 
-const APP_NAME = "ห้องเรียนธรรมชาติของ ไบรอ่นน";
+const APP_NAME = "ห้องเรียนธรรมชาติของ ไบรอั่น";
 
 export const Route = createRootRoute({
   head: () => ({
@@ -11,7 +11,7 @@ export const Route = createRootRoute({
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: APP_NAME },
-      { name: "description", content: "ห้องเรียนธรรมชาติของ ไบรอ่นน เรียนรู้แสงแดด น้ำ ดิน และอากาศผ่านการปลูกต้นไม้" },
+      { name: "description", content: "ห้องเรียนธรรมชาติของ ไบรอั่น เรียนรู้แสงแดด น้ำ ดิน และอากาศผ่านการปลูกต้นไม้" },
       { name: "theme-color", content: "#2fbe3c" },
     ],
     links: [
