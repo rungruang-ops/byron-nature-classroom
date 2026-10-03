@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { FACTORS, FACTOR_MAP, LINES, QUIZ, type FactorId } from "./content";
+import { BYRON_ART } from "./art";
 import { FACTOR_ICONS } from "./factor-icons";
 import { playSfx } from "./sfx";
 
@@ -42,6 +43,22 @@ function Plant({ stage }: { stage: number }) {
         </g>
       )}
     </svg>
+  );
+}
+
+function Praise({ text }: { text: string }) {
+  return (
+    <div className="praise">
+      <img
+        className="praise-byron byron-happy"
+        src={BYRON_ART.pat.src}
+        width={BYRON_ART.pat.width}
+        height={BYRON_ART.pat.height}
+        alt={BYRON_ART.pat.alt}
+        draggable={false}
+      />
+      <p className="praise-text">{text}</p>
+    </div>
   );
 }
 
@@ -165,6 +182,14 @@ export function GrowOverlay({
         </div>
         <p className="hint">{hint}</p>
         <div className={`plant-stage fx-${fx ?? "none"}`}>
+          <img
+            className="stage-byron byron-walking"
+            src={BYRON_ART.walk.src}
+            width={BYRON_ART.walk.width}
+            height={BYRON_ART.walk.height}
+            alt={BYRON_ART.walk.alt}
+            draggable={false}
+          />
           <Plant stage={Math.min(4, applied.length)} />
           {fx === "water" && (
             <div className="drops" aria-hidden="true">
@@ -225,7 +250,7 @@ export function GrowOverlay({
                 <i key={i} className={`bit b${i % 4}`} style={{ left: `${(i * 7) % 100}%`, animationDelay: `${i * 0.05}s` }} />
               ))}
             </div>
-            <p>เยี่ยมมาก! ต้นไม้ได้รับแสง น้ำ ดิน และอากาศครบแล้ว</p>
+            <Praise text="เยี่ยมมาก! ต้นไม้ได้รับแสง น้ำ ดิน และอากาศครบแล้ว" />
             <button type="button" className="go" onClick={onClose}>
               กลับห้องเรียน
             </button>
@@ -266,7 +291,20 @@ export function FlowerOverlay({
             ปิด
           </button>
         </div>
-        <p className="hint">แตะดอกไม้ให้ครบ 5 ดอก {picked.length}/5</p>
+        <div className="hint hint-with-byron">
+          <img
+            className="hint-byron byron-walking"
+            src={BYRON_ART.walk.src}
+            width={BYRON_ART.walk.width}
+            height={BYRON_ART.walk.height}
+            alt=""
+            draggable={false}
+          />
+          <span>
+            แตะดอกไม้ให้ครบ {SPOTS.length} ดอก {picked.length}/{SPOTS.length}
+          </span>
+        </div>
+        {picked.length >= SPOTS.length && <Praise text="เก็บดอกไม้ครบแล้ว ไบรอั่นดีใจมาก!" />}
         <div className="meadow-play">
           {SPOTS.map((spot, index) => (
             <button
@@ -278,7 +316,7 @@ export function FlowerOverlay({
                 if (picked.includes(index)) return;
                 const next = [...picked, index];
                 setPicked(next);
-                if (next.length === 5) {
+                if (next.length === SPOTS.length) {
                   onClear();
                   playSfx("win");
                   say(already ? LINES.again : LINES.flowers);
@@ -292,7 +330,7 @@ export function FlowerOverlay({
             </button>
           ))}
         </div>
-        {picked.length >= 5 && (
+        {picked.length >= SPOTS.length && (
           <button type="button" className="go" onClick={onClose}>
             เยี่ยมมาก!
           </button>

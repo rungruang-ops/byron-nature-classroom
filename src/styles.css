@@ -61,6 +61,14 @@
   --color-sky: #5eb7ee;
   --color-soil: #7d4e2a;
   --color-bezel: #161616;
+  /* Byron's meadow palette */
+  --color-sky-soft: #dff3ff;
+  --color-grass: #5cbf4a;
+  --color-grass-soft: #a6dd85;
+  --color-overalls: #c8452f;
+  --color-shirt: #ffe08a;
+  --shadow-soft: 0 10px 24px rgba(40, 90, 140, 0.16);
+  --shadow-card: 0 6px 16px rgba(60, 50, 20, 0.12);
 }
 
 @layer base {
@@ -76,7 +84,7 @@
     margin: 0;
     color: var(--color-ink);
     font-family: var(--font-sans);
-    background: #c9955c url("/assets/wood.jpg") center / cover no-repeat;
+    background: linear-gradient(#bfe6ff, #e9f7ff 55%, #eaf7dc);
     overflow: hidden;
     color-scheme: light;
   }
@@ -92,36 +100,12 @@
   overflow: hidden;
 }
 
-.prop {
-  display: none;
-  position: absolute;
-  height: auto;
-  filter: drop-shadow(0 10px 8px rgba(60, 30, 8, 0.28));
-  pointer-events: none;
-  user-select: none;
-}
-
+/* Phones: full-bleed screen, padded clear of the notch and home indicator. */
 .tablet {
   position: absolute;
-  inset: 8px;
-  background: linear-gradient(160deg, #3a3a3a, var(--color-bezel) 40%, #0c0c0c);
-  border-radius: 28px;
-  padding: 10px 10px 10px 14px;
-  box-shadow:
-    0 18px 40px rgba(50, 24, 6, 0.35),
-    inset 0 0 0 2px #6d6d6d;
-}
-
-.tablet::before {
-  content: "";
-  position: absolute;
-  left: 5px;
-  top: 50%;
-  width: 7px;
-  height: 7px;
-  margin-top: -3px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 35% 35%, #555, #050505 62%);
+  inset: 0;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom)
+    env(safe-area-inset-left);
 }
 
 .screen {
@@ -129,10 +113,8 @@
   height: 100%;
   display: flex;
   flex-direction: column;
-  border-radius: 18px;
   overflow: hidden;
   background: var(--color-cream);
-  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.35);
 }
 
 .sidebar {
@@ -180,8 +162,12 @@
 .nav-btn.is-active .nav-ico {
   background: #fff;
   box-shadow:
-    0 0 0 3px #7dce57,
-    0 4px 0 rgba(90, 50, 20, 0.08);
+    0 0 0 3px var(--color-grass),
+    0 6px 12px rgba(60, 120, 40, 0.18);
+}
+
+.nav-btn.is-active {
+  color: var(--color-overalls);
 }
 
 .stage {
@@ -192,12 +178,15 @@
   flex-direction: column;
 }
 
+/* Soft, simple meadow so Byron is the star: sun glow, sky, two gentle hills. */
 .stage-bg {
   position: absolute;
   inset: 0;
   background:
-    url("/assets/meadow.jpg") center / cover no-repeat,
-    linear-gradient(#7ec8f8, #d7f3ff 46%, #67c45a 46%, #2f8a34);
+    radial-gradient(circle at 86% 6%, rgba(255, 233, 140, 0.95) 0 5%, rgba(255, 233, 140, 0) 24%),
+    radial-gradient(140% 48% at 12% 104%, var(--color-grass-soft) 0 52%, transparent 53%),
+    radial-gradient(130% 44% at 96% 108%, #8fd06d 0 52%, transparent 53%),
+    linear-gradient(#bfe6ff, var(--color-sky-soft) 58%, #f3fbe8);
 }
 
 .topbar {
@@ -216,28 +205,27 @@
   justify-content: center;
   gap: 6px;
   min-height: 52px;
-  padding: 4px 8px;
-  border-radius: 16px;
-  background: linear-gradient(#fff4d2, #f0d39a);
-  border: 3px solid var(--color-bark);
-  box-shadow: 0 4px 0 #8a5a2b;
+  padding: 4px 12px;
+  border-radius: 22px;
+  background: #fffdf6;
+  box-shadow:
+    inset 0 -4px 0 var(--color-shirt),
+    var(--shadow-soft);
 }
 
 .banner-text {
   display: flex;
   flex-direction: column;
   align-items: center;
-  color: #fffdf8;
-  font-size: 15px;
+  color: var(--color-overalls);
+  font-size: 16px;
   font-weight: 700;
-  line-height: 1.15;
+  line-height: 1.2;
   letter-spacing: 0;
-  text-shadow:
-    0 2px 0 #6b3d16,
-    1px 1px 0 #6b3d16,
-    -1px 1px 0 #6b3d16,
-    1px -1px 0 #6b3d16,
-    -1px -1px 0 #6b3d16;
+}
+
+.banner-text span:last-child {
+  color: var(--color-bark);
 }
 
 .leaf {
@@ -265,12 +253,12 @@
   min-height: 32px;
   padding: 2px 8px;
   border-radius: 999px;
-  background: rgba(255, 248, 236, 0.94);
+  background: rgba(255, 255, 255, 0.92);
   color: var(--color-ink);
   font-weight: 700;
-  font-size: 11px;
+  font-size: 12px;
   white-space: nowrap;
-  box-shadow: 0 2px 0 rgba(90, 50, 20, 0.12);
+  box-shadow: var(--shadow-card);
 }
 
 .badge svg {
@@ -283,9 +271,9 @@
   height: 36px;
   border-radius: 50%;
   overflow: hidden;
-  background: #f3d7b0;
+  background: var(--color-shirt);
   border: 2px solid #fff;
-  box-shadow: 0 0 0 2px #e7b15a;
+  box-shadow: 0 0 0 2px var(--color-overalls);
 }
 
 .avatar img,
@@ -293,7 +281,9 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center 18%;
+  object-position: center 4%;
+  transform: scale(1.6);
+  transform-origin: center 12%;
 }
 
 .icon-btn {
@@ -301,8 +291,8 @@
   height: 36px;
   border: 0;
   border-radius: 50%;
-  background: rgba(255, 248, 236, 0.94);
-  box-shadow: 0 2px 0 rgba(90, 50, 20, 0.12);
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: var(--shadow-card);
   padding: 6px;
 }
 
@@ -322,98 +312,113 @@
 .home {
   height: 100%;
   display: grid;
-  grid-template-rows: minmax(120px, 1fr) auto;
+  grid-template-rows: minmax(150px, 1fr) auto;
   min-height: 0;
-  padding: 6px 8px 8px;
-  gap: 6px;
+  padding: 4px 10px 10px;
+  gap: 8px;
 }
 
+/* Byron on the left, his speech bubble beside him. */
 .hero {
   position: relative;
   min-height: 0;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  grid-template-areas: "byron speech";
+  align-items: start;
 }
 
 .speech {
-  margin: 0;
+  grid-area: speech;
+  margin: 10px 0 0 4px;
   position: relative;
   z-index: 2;
-  align-self: flex-start;
-  max-width: 78%;
-  background: #fffdf8;
+  justify-self: start;
+  background: #fff;
   color: var(--color-ink);
-  border: 3px solid var(--color-bark);
-  border-radius: 16px;
-  padding: 8px 10px;
+  border-radius: 20px;
+  padding: 10px 12px;
   font-weight: 700;
-  font-size: 14px;
-  line-height: 1.35;
-  box-shadow: 0 4px 0 rgba(90, 50, 20, 0.12);
+  font-size: 15px;
+  line-height: 1.4;
+  box-shadow: var(--shadow-soft);
   animation: pop 0.35s ease;
 }
 
-.speech::after {
-  content: "";
-  position: absolute;
-  left: 28px;
-  bottom: -11px;
-  border-width: 10px 8px 0;
-  border-style: solid;
-  border-color: var(--color-bark) transparent transparent;
-}
-
+/* Tail pointing back at Byron. */
 .speech::before {
   content: "";
   position: absolute;
-  left: 31px;
-  bottom: -6px;
-  border-width: 8px 6px 0;
-  border-style: solid;
-  border-color: #fffdf8 transparent transparent;
-  z-index: 1;
+  left: -8px;
+  top: 26px;
+  width: 18px;
+  height: 18px;
+  background: #fff;
+  border-radius: 3px;
+  transform: rotate(45deg);
+}
+
+.speech::after {
+  content: none;
 }
 
 .pig-wrap {
+  grid-area: byron;
   position: relative;
-  flex: 1;
+  height: 100%;
   min-height: 0;
   display: flex;
   align-items: flex-end;
   justify-content: center;
   border: 0;
-  padding: 0;
+  padding: 0 0 14px;
   background: none;
   color: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.pig-ground {
+  position: absolute;
+  left: 50%;
+  bottom: 10px;
+  width: 64%;
+  height: 22px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(40, 90, 30, 0.32), rgba(40, 90, 30, 0));
+  pointer-events: none;
 }
 
 .pig-name {
   position: absolute;
   left: 50%;
-  bottom: 2%;
+  bottom: 0;
   transform: translateX(-50%);
-  background: #fffdf8;
-  color: var(--color-ink);
-  border: 3px solid var(--color-bark);
+  background: var(--color-overalls);
+  color: #fff;
+  border: 3px solid #fff;
   border-radius: 999px;
-  padding: 2px 12px 3px;
+  padding: 1px 14px 2px;
   font-weight: 700;
   font-size: 14px;
-  line-height: 1.2;
-  box-shadow: 0 3px 0 rgba(90, 50, 20, 0.12);
+  line-height: 1.3;
+  box-shadow: var(--shadow-card);
   pointer-events: none;
   white-space: nowrap;
 }
 
 .pig {
+  position: relative;
   height: 100%;
   width: auto;
-  max-width: 70%;
+  max-width: 100%;
   object-fit: contain;
   object-position: center bottom;
   transform-origin: center bottom;
-  filter: drop-shadow(0 12px 8px rgba(40, 30, 10, 0.28));
-  animation: bob 3.4s ease-in-out infinite;
+  filter: drop-shadow(0 14px 12px rgba(30, 60, 20, 0.28));
+  animation: byron-idle 3.2s ease-in-out infinite;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .pig.pose-hop { animation: pig-hop 0.72s ease-in-out 2; }
@@ -429,10 +434,9 @@
   display: flex;
   flex-direction: column;
   min-height: 0;
-  background: linear-gradient(#fffaf0, #f6edd8);
-  border-radius: 18px;
-  border: 3px solid rgba(255, 255, 255, 0.85);
-  box-shadow: 0 10px 20px rgba(80, 50, 10, 0.16);
+  background: rgba(255, 253, 246, 0.96);
+  border-radius: 24px;
+  box-shadow: var(--shadow-soft);
   overflow: hidden;
 }
 
@@ -447,9 +451,9 @@
 }
 
 .panel h2 {
-  background: linear-gradient(#8d5a32, #6e4124);
-  color: #fffaf0;
-  padding: 8px 28px 7px;
+  background: linear-gradient(#ffe48a, #ffd24a);
+  color: #7a3d12;
+  padding: 9px 28px 8px;
   position: relative;
 }
 
@@ -473,11 +477,14 @@
   align-items: center;
   gap: 8px;
   text-align: left;
-  border-radius: 16px;
-  border: 3px solid rgba(255, 255, 255, 0.88);
+  border-radius: 18px;
+  border: 0;
   padding: 8px 10px;
   color: var(--color-ink);
-  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.08);
+  box-shadow:
+    inset 0 -4px 0 rgba(0, 0, 0, 0.08),
+    var(--shadow-card);
+  transition: transform 0.15s ease;
 }
 
 .factor:active,
@@ -509,7 +516,8 @@
 .factor.is-done {
   box-shadow:
     0 0 0 3px #fff,
-    0 3px 0 rgba(0, 0, 0, 0.08);
+    0 0 0 6px var(--color-grass),
+    var(--shadow-card);
 }
 .factor-ico {
   width: 42px;
@@ -557,9 +565,9 @@
   grid-template-columns: auto minmax(0, 1fr) auto auto;
   align-items: center;
   gap: 6px;
-  padding: 6px 8px;
-  background: linear-gradient(#fffaf0, #f3ead6);
-  border-top: 2px solid rgba(200, 170, 110, 0.35);
+  padding: 6px 10px;
+  background: rgba(255, 253, 246, 0.94);
+  box-shadow: 0 -6px 16px rgba(40, 90, 140, 0.08);
 }
 
 .chapter,
@@ -639,8 +647,71 @@
   height: 100%;
   overflow: auto;
   padding: 8px 10px 12px;
-  background: rgba(255, 248, 236, 0.9);
+  background: rgba(255, 252, 244, 0.72);
   color: var(--color-ink);
+}
+
+/* Page header card with Byron popping out on the right. */
+.page-hero {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 132px;
+  margin-bottom: 12px;
+  padding: 12px 0 0 16px;
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: var(--shadow-soft);
+}
+
+.hero-walk {
+  background:
+    radial-gradient(120% 60% at 80% 110%, var(--color-grass-soft) 0 50%, transparent 51%),
+    linear-gradient(#cdeeff, #f1fae6);
+}
+
+.hero-pat {
+  background:
+    radial-gradient(circle at 85% 30%, rgba(255, 224, 138, 0.9), transparent 55%),
+    linear-gradient(#fff4cf, #ffe9f0);
+}
+
+.page-hero-copy {
+  align-self: center;
+  padding-bottom: 12px;
+}
+
+.page .page-hero h2 {
+  text-align: left;
+  font-size: 20px;
+  margin: 0 0 4px;
+  color: var(--color-overalls);
+}
+
+.page-hero-copy p {
+  margin: 0;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.page-hero-byron {
+  flex: none;
+  width: auto;
+  height: 132px;
+  filter: drop-shadow(0 10px 10px rgba(30, 60, 20, 0.22));
+  user-select: none;
+}
+
+/* The patting hand comes in from the card's top edge. */
+.hero-pat .page-hero-byron {
+  align-self: flex-start;
+  margin-top: -12px;
+  height: 150px;
+  /* Soften where the arm is cut at the photo's top-left edge. */
+  -webkit-mask-image: radial-gradient(ellipse 45% 30% at 0 0, transparent 40%, #000 100%);
+  mask-image: radial-gradient(ellipse 45% 30% at 0 0, transparent 40%, #000 100%);
 }
 
 .page h2 {
@@ -668,11 +739,12 @@
   gap: 10px;
   text-align: left;
   border: 0;
-  border-radius: 14px;
+  border-radius: 18px;
   background: #fff;
   color: var(--color-ink);
-  padding: 10px;
-  box-shadow: 0 3px 0 rgba(90, 50, 20, 0.08);
+  padding: 12px;
+  min-height: 52px;
+  box-shadow: var(--shadow-card);
   font-weight: 700;
 }
 
@@ -745,9 +817,9 @@
 .note,
 .badge-card {
   background: #fff;
-  border-radius: 14px;
+  border-radius: 18px;
   padding: 10px 12px;
-  box-shadow: 0 3px 0 rgba(90, 50, 20, 0.08);
+  box-shadow: var(--shadow-card);
 }
 
 .note h3,
@@ -801,12 +873,80 @@
   width: min(640px, 100%);
   max-height: 100%;
   overflow: auto;
-  background: var(--color-cream);
+  background: #fffdf6;
   color: var(--color-ink);
-  border-radius: 20px;
-  border: 4px solid var(--color-bark);
-  padding: 10px;
-  box-shadow: 0 16px 30px rgba(0, 0, 0, 0.25);
+  border-radius: 26px;
+  border: 0;
+  padding: 12px;
+  box-shadow: 0 20px 40px rgba(20, 50, 80, 0.28);
+}
+
+.sheet-byron {
+  float: right;
+  width: auto;
+  height: 120px;
+  margin: 4px 0 4px 8px;
+  filter: drop-shadow(0 8px 8px rgba(30, 60, 20, 0.22));
+}
+
+/* Success: Byron gets a pat on the head. */
+.praise {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 6px 0;
+  border-radius: 24px;
+  overflow: hidden;
+  text-align: left;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(255, 224, 138, 0.95), transparent 60%),
+    linear-gradient(#fff4cf, #e9f8dd);
+  box-shadow: var(--shadow-card);
+}
+
+.praise-byron {
+  flex: none;
+  align-self: flex-start;
+  width: auto;
+  height: 150px;
+  filter: drop-shadow(0 10px 10px rgba(30, 60, 20, 0.22));
+}
+
+.praise-text {
+  margin: 0;
+  padding: 10px 14px 10px 0;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.4;
+  color: var(--color-overalls);
+}
+
+.hint-with-byron {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hint-byron {
+  flex: none;
+  width: auto;
+  height: 56px;
+  filter: drop-shadow(0 4px 4px rgba(30, 60, 20, 0.2));
+}
+
+.stage-byron {
+  position: absolute;
+  left: 3%;
+  bottom: 8px;
+  width: min(40%, 210px);
+  height: auto;
+  max-height: 70%;
+  object-fit: contain;
+  object-position: left bottom;
+  z-index: 1;
+  filter: drop-shadow(0 10px 8px rgba(30, 60, 20, 0.25));
+  pointer-events: none;
 }
 
 .grow-sheet,
@@ -853,16 +993,31 @@
   display: grid;
   place-items: end center;
   overflow: hidden;
-  border-radius: 16px;
+  border-radius: 20px;
   background:
-    linear-gradient(#c9ecff, transparent 55%),
-    url("/assets/meadow.jpg") center / cover;
+    radial-gradient(140% 50% at 50% 108%, var(--color-grass-soft) 0 52%, transparent 53%),
+    linear-gradient(#cdeeff, #f1fae6);
+}
+
+/* Plant sits to the right so walking Byron can stand beside it. */
+.plant-stage {
+  justify-items: end;
+  padding-right: 6%;
 }
 
 .plant-svg {
-  width: min(220px, 70%);
+  width: min(220px, 56%);
   height: auto;
   animation: plant-pop 0.45s cubic-bezier(0.2, 1.3, 0.4, 1);
+}
+
+/* Effect layers overlay the stage instead of adding a grid row (which made
+   the plant jump up during the water and soil effects). */
+.drops,
+.crumbs {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
 }
 
 .drops i,
@@ -986,7 +1141,9 @@
   min-height: 220px;
   border-radius: 16px;
   overflow: hidden;
-  background: url("/assets/meadow.jpg") center / cover;
+  background:
+    radial-gradient(130% 70% at 30% 112%, #8fd06d 0 55%, transparent 56%),
+    linear-gradient(#cdeeff 0 30%, var(--color-grass-soft) 30%, #7cc95f);
 }
 
 .bloom {
@@ -1026,23 +1183,69 @@
   line-height: 1.45;
 }
 
-.toast {
+/* Notices sit just above the dock so the header stays readable; tap to dismiss. */
+.toast-slot {
   position: absolute;
-  left: 50%;
-  top: 12px;
-  transform: translateX(-50%);
-  z-index: 5;
+  left: 8px;
+  right: 8px;
+  bottom: 60px;
+  z-index: 6;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.toast {
+  pointer-events: auto;
+  max-width: 100%;
   margin: 0;
+  border: 0;
   background: #fff;
   color: var(--color-bark);
   font-weight: 700;
+  font-size: 14px;
+  line-height: 1.35;
   border-radius: 999px;
-  padding: 6px 12px;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.16);
+  padding: 8px 16px;
+  box-shadow: 0 8px 20px rgba(20, 50, 80, 0.22);
+  animation: toast-in 0.25s ease;
 }
 
 .is-shake {
   animation: shake 0.35s linear;
+}
+
+@keyframes byron-idle {
+  0%,
+  100% { transform: translateY(0) scale(1, 1); }
+  50% { transform: translateY(-6px) scale(1.012, 0.99); }
+}
+
+@keyframes byron-walk {
+  0%,
+  100% { transform: translateY(0) rotate(-2deg); }
+  50% { transform: translateY(-7px) rotate(2deg); }
+}
+
+@keyframes byron-happy {
+  0% { transform: scale(0.85); opacity: 0; }
+  60% { transform: scale(1.04); opacity: 1; }
+  100% { transform: none; }
+}
+
+@keyframes toast-in {
+  from { transform: translateY(8px); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+
+.byron-walking {
+  transform-origin: center bottom;
+  animation: byron-walk 0.9s ease-in-out infinite;
+}
+
+.byron-happy {
+  transform-origin: center bottom;
+  animation: byron-happy 0.6s cubic-bezier(0.2, 1.3, 0.4, 1) both;
 }
 
 @keyframes bob {
@@ -1131,32 +1334,21 @@
     margin: auto;
     width: min(100vw, calc(100dvh * 1440 / 900));
     height: min(100dvh, calc(100vw * 900 / 1440));
-    background: url("/assets/wood.jpg") center / cover no-repeat;
   }
 
-  .prop {
-    display: block;
-  }
-
-  .prop-compass { left: 1%; top: 2.2%; width: 7.4%; }
-  .prop-glass { left: 0.3%; bottom: 2%; width: 9%; }
-  .prop-gear { right: 1%; top: 2.4%; width: 7%; }
-  .prop-eraser { right: 1.8%; bottom: 3.5%; width: 4.4%; }
-
+  /* Larger screens: a soft white frame instead of a device bezel. */
   .tablet {
-    inset: auto;
-    left: 8.4%;
-    top: 4.2%;
-    width: 83.2%;
-    height: 91.6%;
-    border-radius: 36px;
-    padding: 14px 14px 14px 18px;
+    inset: 2.5% 3%;
+    border-radius: 34px;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.75);
+    box-shadow: 0 24px 60px rgba(40, 90, 140, 0.22);
   }
 
   .screen {
     display: grid;
-    grid-template-columns: 12.2% 1fr;
-    border-radius: 22px;
+    grid-template-columns: 11% 1fr;
+    border-radius: 26px;
   }
 
   .sidebar {
@@ -1171,6 +1363,7 @@
   .nav-btn {
     font-size: 13px;
     min-height: 0;
+    gap: 6px;
   }
 
   .nav-ico {
@@ -1225,26 +1418,45 @@
   }
 
   .hero {
-    display: block;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
   }
 
   .speech {
-    position: absolute;
-    left: 0;
-    top: 4%;
-    width: 62%;
-    max-width: none;
-    font-size: 15px;
+    margin-top: 14%;
+    font-size: clamp(16px, 1.45vw, 21px);
+    padding: 14px 18px;
+    border-radius: 24px;
+  }
+
+  .speech::before {
+    top: 32px;
+    left: -9px;
+    width: 20px;
+    height: 20px;
   }
 
   .pig-wrap {
-    position: absolute;
-    inset: 8% 0 0 12%;
+    padding-bottom: 18px;
   }
 
-  .pig {
-    max-width: none;
-    height: 100%;
+  .pig-name {
+    font-size: 17px;
+  }
+
+  .page-hero {
+    min-height: 170px;
+  }
+
+  .page-hero-byron {
+    height: 170px;
+  }
+
+  .hero-pat .page-hero-byron {
+    height: 190px;
+  }
+
+  .toast-slot {
+    bottom: 76px;
   }
 
   .panel {
@@ -1307,15 +1519,10 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .pig,
-  .speech,
-  .plant-svg,
-  .bit,
-  .drops i,
-  .crumbs i,
-  .rays,
-  .gusts,
-  .is-shake {
-    animation: none;
+  .desk *,
+  .desk *::before,
+  .desk *::after {
+    animation: none !important;
+    transition: none !important;
   }
 }

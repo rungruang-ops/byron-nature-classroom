@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import {
   CHARACTER,
   DEFAULT_LINE,
@@ -27,8 +27,20 @@ import {
 } from "./icons";
 import { FACTOR_ICONS } from "./factor-icons";
 import { FlowerOverlay, GrowOverlay } from "./overlays";
-import { installAudioUnlock, playSfx, setMusicEnabled, setSfxEnabled, speak, unlockAudio } from "./sfx";
+import { BYRON_ART } from "./art";
+import {
+  AUDIO_FAIL_EVENT,
+  AUDIO_OK_EVENT,
+  installAudioUnlock,
+  playSfx,
+  setMusicEnabled,
+  setSfxEnabled,
+  speak,
+  unlockAudio,
+} from "./sfx";
 import { ClassroomProvider, useClassroom } from "./state";
+
+const HINT_MS = 3000;
 
 const NAV_ICONS = {
   home: BarnIcon,
@@ -65,12 +77,16 @@ function Byron({ onGreet, pose }: { onGreet: () => void; pose: string }) {
       onClick={onGreet}
       aria-label={`${CHARACTER} ทักทาย`}
     >
+      <span className="pig-ground" aria-hidden="true" />
       {ok ? (
         <img
-          src="/assets/moopui.png"
-          alt={CHARACTER}
+          src={BYRON_ART.stand.src}
+          width={BYRON_ART.stand.width}
+          height={BYRON_ART.stand.height}
+          alt={BYRON_ART.stand.alt}
           className={motion}
           draggable={false}
+          fetchPriority="high"
           onError={() => setOk(false)}
         />
       ) : (
@@ -100,18 +116,37 @@ function Desk() {
   const [audioHint, setAudioHint] = useState<string | null>(null);
   const [pose, setPose] = useState("");
   const poseTimer = useRef(0);
+  const hintTimer = useRef(0);
+
+  const clearHint = useCallback(() => {
+    window.clearTimeout(hintTimer.current);
+    setAudioHint(null);
+  }, []);
+
+  /** Short notice: auto-hides, and each kind is shown at most once per session. */
+  const showHint = useCallback((text: string, onceKey: string) => {
+    try {
+      if (sessionStorage.getItem(onceKey)) return;
+      sessionStorage.setItem(onceKey, "1");
+    } catch {
+      /* no sessionStorage: still auto-hides below */
+    }
+    setAudioHint(text);
+    window.clearTimeout(hintTimer.current);
+    hintTimer.current = window.setTimeout(() => setAudioHint(null), HINT_MS);
+  }, []);
 
   useEffect(() => installAudioUnlock(), []);
   useEffect(() => {
-    const fail = () => setAudioHint("เปิดเสียงลำโพง แล้วแตะไบรอั่นอีกครั้ง");
-    const ok = () => setAudioHint(null);
-    window.addEventListener("byron-audio-fail", fail);
-    window.addEventListener("byron-audio-ok", ok);
+    const fail = () => showHint("เปิดเสียงลำโพง แล้วแตะไบรอั่นอีกครั้ง", "byron-hint-audio");
+    window.addEventListener(AUDIO_FAIL_EVENT, fail);
+    window.addEventListener(AUDIO_OK_EVENT, clearHint);
     return () => {
-      window.removeEventListener("byron-audio-fail", fail);
-      window.removeEventListener("byron-audio-ok", ok);
+      window.removeEventListener(AUDIO_FAIL_EVENT, fail);
+      window.removeEventListener(AUDIO_OK_EVENT, clearHint);
+      window.clearTimeout(hintTimer.current);
     };
-  }, []);
+  }, [showHint, clearHint]);
   useEffect(() => setSfxEnabled(save.sfx), [save.sfx]);
   useEffect(() => {
     const wake = () => {
@@ -134,7 +169,7 @@ function Desk() {
     window.clearTimeout(poseTimer.current);
     poseTimer.current = window.setTimeout(() => setPose(""), 2400);
     if (!save.voice) {
-      setAudioHint("เสียงพูดปิดอยู่ กดปุ่มแชทมุมล่างขวา");
+      showHint("เสียงพูดปิดอยู่ กดปุ่มแชทมุมล่างขวา", "byron-hint-voice-off");
       return;
     }
     speak(text, true);
@@ -161,10 +196,6 @@ function Desk() {
 
   return (
     <div className="desk">
-      <Art src="/assets/compass.png" alt="" className="prop prop-compass" />
-      <Art src="/assets/magnifier.png" alt="" className="prop prop-glass" />
-      <Art src="/assets/gear.png" alt="" className="prop prop-gear" />
-      <Art src="/assets/eraser.png" alt="" className="prop prop-eraser" />
       <div className="tablet">
         <div className="screen">
           <nav className="sidebar" aria-label="เมนูห้องเรียน">
@@ -205,7 +236,7 @@ function Desk() {
                 </span>
                 <span className="badge level">ระดับ: {save.level}</span>
                 <span className="avatar" aria-hidden="true">
-                  <Art src="/assets/moopui.png" alt="" fallback={<PigFallback />} />
+                  <Art src={BYRON_ART.stand.src} alt="" fallback={<PigFallback />} />
                 </span>
                 <button type="button" className="icon-btn" aria-label="ตั้งค่า" onClick={() => { setOverlay("settings"); setArmReset(false); playSfx("nav"); }}>
                   <GearIcon />
@@ -219,7 +250,7 @@ function Desk() {
               {view === "home" && (
                 <div className="home">
                   <div className="hero">
-                    <p className="speech" key={line}>
+                    <p className="speech" key={line} aria-live="polite">
                       {line}
                     </p>
                     <Byron
@@ -318,7 +349,13 @@ function Desk() {
                 </button>
               </div>
             </footer>
-            {(audioHint || api.toast) && <p className="toast">{audioHint ?? api.toast}</p>}
+            <div className="toast-slot" role="status" aria-live="polite">
+              {(audioHint || api.toast) && (
+                <button type="button" className="toast" onClick={clearHint}>
+                  {audioHint ?? api.toast}
+                </button>
+              )}
+            </div>
           </div>
           {overlay === "grow" && (
             <GrowOverlay
@@ -390,6 +427,14 @@ function Desk() {
                     ปิด
                   </button>
                 </div>
+                <img
+                  className="sheet-byron"
+                  src={BYRON_ART.stand.src}
+                  width={BYRON_ART.stand.width}
+                  height={BYRON_ART.stand.height}
+                  alt=""
+                  draggable={false}
+                />
                 <ol className="help">
                   <li>แตะการ์ดแสงแดด น้ำ ดิน หรืออากาศ ฟังไบรอั่นเล่าให้ฟัง</li>
                   <li>แตะตัวไบรอั่นเพื่อฟังเสียงทักทาย</li>
@@ -422,7 +467,20 @@ function Missions({
   ];
   return (
     <section className="page">
-      <h2>ภารกิจนักสำรวจ</h2>
+      <div className="page-hero hero-walk">
+        <div className="page-hero-copy">
+          <h2>ภารกิจนักสำรวจ</h2>
+          <p>ไปผจญภัยในทุ่งดอกไม้กับไบรอั่นกันเถอะ!</p>
+        </div>
+        <img
+          className="page-hero-byron byron-walking"
+          src={BYRON_ART.walk.src}
+          width={BYRON_ART.walk.width}
+          height={BYRON_ART.walk.height}
+          alt={BYRON_ART.walk.alt}
+          draggable={false}
+        />
+      </div>
       <div className="cards">
         {items.map((item, index) => (
           <button key={item.title} type="button" className="mission" onClick={() => { playSfx("tap"); item.go(); }}>
@@ -488,7 +546,22 @@ function Kit({ save }: { save: { learned: FactorId[]; garden: number; flowerClea
   ];
   return (
     <section className="page">
-      <h2>คลังแสง</h2>
+      <div className="page-hero hero-pat">
+        <div className="page-hero-copy">
+          <h2>คลังแสง</h2>
+          <p>
+            ได้เหรียญแล้ว {badges.filter((badge) => badge.earned).length} จาก {badges.length} เหรียญ
+          </p>
+        </div>
+        <img
+          className="page-hero-byron byron-happy"
+          src={BYRON_ART.pat.src}
+          width={BYRON_ART.pat.width}
+          height={BYRON_ART.pat.height}
+          alt={BYRON_ART.pat.alt}
+          draggable={false}
+        />
+      </div>
       <div className="badges">
         {badges.map((badge) => (
           <article key={badge.name} className={badge.earned ? "badge-card on" : "badge-card"}>
