@@ -33,6 +33,13 @@ export function poseFor(text: string) {
   return "talk";
 }
 
+/**
+ * The recorded /voice/*.mp3 clips are not in the repo yet. While false, the app
+ * speaks every line with the browser's Thai voice and never requests the clips
+ * (which would 404). Set to true once public/voice/ holds the recordings.
+ */
+export const HAS_RECORDED_VOICE = false;
+
 export const SPOKEN: Record<string, string> = {
   [DEFAULT_LINE]: "/voice/hello.mp3?v=boy",
   [INTRO_LINE]: "/voice/intro.mp3?v=boy",

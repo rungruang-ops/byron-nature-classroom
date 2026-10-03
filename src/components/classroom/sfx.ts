@@ -1,4 +1,4 @@
-import { SPOKEN } from "./content";
+import { HAS_RECORDED_VOICE, SPOKEN } from "./content";
 
 type Kind = "tap" | "nav" | "grow" | "win" | "no";
 
@@ -20,6 +20,16 @@ let lastSpoken = "";
 let lastSpokenAt = 0;
 const clips = new Map<string, HTMLAudioElement>();
 let currentClip: HTMLAudioElement | null = null;
+/** Recorded clips confirmed to exist (fetch ok). Anything else uses browser speech. */
+const availableClips = new Set<string>();
+let speechUnlocked = false;
+
+export const AUDIO_OK_EVENT = "byron-audio-ok";
+export const AUDIO_FAIL_EVENT = "byron-audio-fail";
+
+function signal(name: string) {
+  if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent(name));
+}
 
 const TUNE = [523.25, 659.25, 783.99, 880, 783.99, 659.25, 587.33, 523.25];
 
@@ -161,7 +171,10 @@ function stopTalking() {
   if (currentClip) {
     currentClip.pause();
   }
-  if (typeof window !== "undefined" && window.speechSynthesis) window.speechSynthesis.cancel();
+  const synth = typeof window !== "undefined" ? window.speechSynthesis : undefined;
+  // Only cancel when something is queued: Safari can drop an utterance that is
+  // spoken straight after an unnecessary cancel().
+  if (synth && (synth.speaking || synth.pending)) synth.cancel();
 }
 
 function clipElement(src: string) {
@@ -197,6 +210,7 @@ function playBuffer(buf: AudioBuffer) {
     if (voiceNode === node) voiceNode = null;
   };
   node.start();
+  signal(AUDIO_OK_EVENT);
 }
 
 async function decodeClip(src: string, audio: AudioContext) {
@@ -214,16 +228,46 @@ async function decodeClip(src: string, audio: AudioContext) {
   return buf;
 }
 
-function browserSpeak(text: string) {
-  if (typeof window === "undefined" || !window.speechSynthesis) return;
+/**
+ * iOS Safari only lets speechSynthesis talk after it has been used inside a
+ * user gesture once, so speak a silent utterance on the first tap.
+ */
+function unlockSpeech() {
+  if (speechUnlocked || typeof window === "undefined" || !window.speechSynthesis) return;
+  speechUnlocked = true;
   ensureVoices();
+  try {
+    const silent = new SpeechSynthesisUtterance(" ");
+    silent.volume = 0;
+    window.speechSynthesis.speak(silent);
+  } catch {
+    speechUnlocked = false;
+  }
+}
+
+/** Must be called synchronously from a user gesture to work on iOS. */
+function browserSpeak(text: string): boolean {
+  if (typeof window === "undefined" || !window.speechSynthesis) {
+    signal(AUDIO_FAIL_EVENT);
+    return false;
+  }
+  ensureVoices();
+  if (!thaiVoice) pickThaiVoice();
   const utter = new SpeechSynthesisUtterance(text.replace(/!+/g, ""));
   utter.lang = "th-TH";
   utter.rate = 1.02;
   utter.pitch = 1.45;
   if (thaiVoice) utter.voice = thaiVoice;
+  utter.onstart = () => signal(AUDIO_OK_EVENT);
+  utter.onerror = (event) => {
+    // A newer line interrupting this one is normal, not a failure.
+    if (event.error === "interrupted" || event.error === "canceled") return;
+    signal(AUDIO_FAIL_EVENT);
+  };
   window.speechSynthesis.resume();
   window.speechSynthesis.speak(utter);
+  speechUnlocked = true;
+  return true;
 }
 
 export function speak(text: string, enabled: boolean) {
@@ -233,7 +277,11 @@ export function speak(text: string, enabled: boolean) {
   lastSpoken = text;
   lastSpokenAt = now;
   const id = ++talkId;
-  const src = SPOKEN[text];
+  const recorded = SPOKEN[text];
+  // Only use a recorded clip once preloading confirmed it exists; a missing
+  // file (404) would otherwise fail asynchronously, outside the user gesture
+  // that iOS needs for the speech fallback.
+  const src = recorded && availableClips.has(recorded) ? recorded : undefined;
   const audio = context();
   if (currentClip) currentClip.pause();
   if (!src) {
@@ -257,9 +305,7 @@ export function speak(text: string, enabled: boolean) {
   }
   const pending = el.play();
   void pending
-    .then(() => {
-      window.dispatchEvent(new CustomEvent("byron-audio-ok"));
-    })
+    .then(() => signal(AUDIO_OK_EVENT))
     .catch(() => {
       if (id !== talkId) return;
       const buf = decoded.get(src);
@@ -269,24 +315,28 @@ export function speak(text: string, enabled: boolean) {
         });
         return;
       }
+      // Try speech; if the browser refuses it outside the gesture, the
+      // utterance's onerror (or the missing API) raises AUDIO_FAIL_EVENT.
       browserSpeak(text);
-      window.dispatchEvent(new CustomEvent("byron-audio-fail"));
     });
 }
 
 export function preloadVoice() {
   ensureVoices();
-  if (typeof window === "undefined") return;
+  if (typeof window === "undefined" || !HAS_RECORDED_VOICE) return;
   for (const src of new Set(Object.values(SPOKEN))) {
-    clipElement(src);
     if (rawClips.has(src)) continue;
     void fetch(src)
-      .then((res) => (res.ok ? res.arrayBuffer() : Promise.reject()))
+      .then((res) => (res.ok ? res.arrayBuffer() : Promise.reject(new Error("voice missing"))))
       .then((raw) => {
         rawClips.set(src, raw);
-        if (ctx) void decodeClip(src, ctx);
+        availableClips.add(src);
+        clipElement(src);
+        if (ctx) void decodeClip(src, ctx).catch(() => {});
       })
-      .catch(() => {});
+      .catch(() => {
+        /* no recording: speak() falls back to browser speech */
+      });
   }
 }
 
@@ -296,12 +346,16 @@ export function installAudioUnlock() {
   preloadVoice();
   const wake = () => {
     unlockAudio();
+    unlockSpeech();
     if (!ctx || ctx.state !== "running") return;
     for (const src of rawClips.keys()) {
-      if (!decoded.has(src)) void decodeClip(src, ctx);
+      if (!decoded.has(src)) void decodeClip(src, ctx).catch(() => {});
     }
   };
+  // iOS treats touchend/click (not a touch pointerdown) as the user activation.
   window.addEventListener("pointerdown", wake, { capture: true });
+  window.addEventListener("touchend", wake, { capture: true });
+  window.addEventListener("click", wake, { capture: true });
   window.addEventListener("keydown", wake);
   const onVis = () => {
     if (document.visibilityState === "visible") unlockAudio();
@@ -309,6 +363,8 @@ export function installAudioUnlock() {
   document.addEventListener("visibilitychange", onVis);
   return () => {
     window.removeEventListener("pointerdown", wake, { capture: true });
+    window.removeEventListener("touchend", wake, { capture: true });
+    window.removeEventListener("click", wake, { capture: true });
     window.removeEventListener("keydown", wake);
     document.removeEventListener("visibilitychange", onVis);
     installed = false;
