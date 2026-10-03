@@ -20,8 +20,8 @@ let lastSpoken = "";
 let lastSpokenAt = 0;
 const clips = new Map<string, HTMLAudioElement>();
 let currentClip: HTMLAudioElement | null = null;
-/** Recorded clips confirmed to exist (fetch ok). Anything else uses browser speech. */
-const availableClips = new Set<string>();
+/** Recorded clips that failed to load (e.g. 404); those lines use browser speech. */
+const missingClips = new Set<string>();
 let speechUnlocked = false;
 
 export const AUDIO_OK_EVENT = "byron-audio-ok";
@@ -277,15 +277,13 @@ export function speak(text: string, enabled: boolean) {
   lastSpoken = text;
   lastSpokenAt = now;
   const id = ++talkId;
-  const recorded = SPOKEN[text];
-  // Only use a recorded clip once preloading confirmed it exists; a missing
-  // file (404) would otherwise fail asynchronously, outside the user gesture
-  // that iOS needs for the speech fallback.
-  const src = recorded && availableClips.has(recorded) ? recorded : undefined;
+  const recorded = HAS_RECORDED_VOICE ? SPOKEN[text] : undefined;
+  // Play the recording straight from the tap (iOS only allows audio started
+  // inside a user gesture). Clips already known to be missing go to speech.
+  const src = recorded && !missingClips.has(recorded) ? recorded : undefined;
   const audio = context();
-  if (currentClip) currentClip.pause();
+  stopTalking();
   if (!src) {
-    stopTalking();
     browserSpeak(text);
     return;
   }
@@ -306,8 +304,10 @@ export function speak(text: string, enabled: boolean) {
   const pending = el.play();
   void pending
     .then(() => signal(AUDIO_OK_EVENT))
-    .catch(() => {
+    .catch((error: unknown) => {
       if (id !== talkId) return;
+      // NotAllowedError = blocked autoplay; anything else = the file itself failed.
+      if (!(error instanceof DOMException && error.name === "NotAllowedError")) missingClips.add(src);
       const buf = decoded.get(src);
       if (buf && ctx) {
         void ctx.resume().then(() => {
@@ -330,12 +330,12 @@ export function preloadVoice() {
       .then((res) => (res.ok ? res.arrayBuffer() : Promise.reject(new Error("voice missing"))))
       .then((raw) => {
         rawClips.set(src, raw);
-        availableClips.add(src);
         clipElement(src);
         if (ctx) void decodeClip(src, ctx).catch(() => {});
       })
       .catch(() => {
-        /* no recording: speak() falls back to browser speech */
+        // No recording: speak() uses browser speech for this line.
+        missingClips.add(src);
       });
   }
 }

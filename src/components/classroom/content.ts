@@ -34,25 +34,25 @@ export function poseFor(text: string) {
 }
 
 /**
- * The recorded /voice/*.mp3 clips are not in the repo yet. While false, the app
- * speaks every line with the browser's Thai voice and never requests the clips
- * (which would 404). Set to true once public/voice/ holds the recordings.
+ * Byron's recorded voice lines live in public/voice/ (voice "A": edge-tts
+ * th-TH-NiwatNeural, shifted to a young boy's pitch and formants). Set to false
+ * to speak every line with the browser's Thai voice instead.
  */
-export const HAS_RECORDED_VOICE = false;
+export const HAS_RECORDED_VOICE = true;
 
 export const SPOKEN: Record<string, string> = {
-  [DEFAULT_LINE]: "/voice/hello.mp3?v=boy",
-  [INTRO_LINE]: "/voice/intro.mp3?v=boy",
-  "แสงแดดให้พลังงานกับใบสีเขียวนะ": "/voice/sun.mp3?v=boy",
-  "น้ำช่วยให้ดินชุ่ม, รากได้ดื่มอิ่มเลย": "/voice/water.mp3?v=boy",
-  "ดินคือบ้านของรากนะ, ยึดต้นไว้ให้แน่น": "/voice/soil.mp3?v=boy",
-  "อากาศช่วยให้พืชแลกเปลี่ยนก๊าซได้": "/voice/air.mp3?v=boy",
-  [LINES.go]: "/voice/go.mp3?v=boy",
-  [LINES.bloom]: "/voice/bloom.mp3?v=boy",
-  [LINES.wrong]: "/voice/wrong.mp3?v=boy",
-  [LINES.quiz]: "/voice/quiz.mp3?v=boy",
-  [LINES.flowers]: "/voice/flowers.mp3?v=boy",
-  [LINES.again]: "/voice/again.mp3?v=boy",
+  [DEFAULT_LINE]: "/voice/hello.mp3?v=boyA",
+  [INTRO_LINE]: "/voice/intro.mp3?v=boyA",
+  "แสงแดดให้พลังงานกับใบสีเขียวนะ": "/voice/sun.mp3?v=boyA",
+  "น้ำช่วยให้ดินชุ่ม, รากได้ดื่มอิ่มเลย": "/voice/water.mp3?v=boyA",
+  "ดินคือบ้านของรากนะ, ยึดต้นไว้ให้แน่น": "/voice/soil.mp3?v=boyA",
+  "อากาศช่วยให้พืชแลกเปลี่ยนก๊าซได้": "/voice/air.mp3?v=boyA",
+  [LINES.go]: "/voice/go.mp3?v=boyA",
+  [LINES.bloom]: "/voice/bloom.mp3?v=boyA",
+  [LINES.wrong]: "/voice/wrong.mp3?v=boyA",
+  [LINES.quiz]: "/voice/quiz.mp3?v=boyA",
+  [LINES.flowers]: "/voice/flowers.mp3?v=boyA",
+  [LINES.again]: "/voice/again.mp3?v=boyA",
 };
 
 
