@@ -12,7 +12,6 @@ import {
 } from "./content";
 import {
   BarnIcon,
-  CanIcon,
   ChatIcon,
   GearIcon,
   HelpIcon,
@@ -21,14 +20,12 @@ import {
   MusicIcon,
   NotebookIcon,
   PigFallback,
-  ShovelIcon,
   SpeakerIcon,
   SproutIcon,
   StarIcon,
-  SunIcon,
   ToolboxIcon,
-  WindIcon,
 } from "./icons";
+import { FACTOR_ICONS } from "./factor-icons";
 import { FlowerOverlay, GrowOverlay } from "./overlays";
 import { installAudioUnlock, playSfx, setMusicEnabled, setSfxEnabled, speak, unlockAudio } from "./sfx";
 import { ClassroomProvider, useClassroom } from "./state";
@@ -39,13 +36,6 @@ const NAV_ICONS = {
   garden: SproutIcon,
   notes: NotebookIcon,
   kit: ToolboxIcon,
-} as const;
-
-const FACTOR_ICONS = {
-  sun: SunIcon,
-  water: CanIcon,
-  soil: ShovelIcon,
-  air: WindIcon,
 } as const;
 
 function Art({

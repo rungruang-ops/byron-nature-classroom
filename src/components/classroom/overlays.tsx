@@ -1,14 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { FACTORS, FACTOR_MAP, LINES, QUIZ, type FactorId } from "./content";
-import { CanIcon, ShovelIcon, SunIcon, WindIcon } from "./icons";
+import { FACTOR_ICONS } from "./factor-icons";
 import { playSfx } from "./sfx";
-
-const ICONS = {
-  sun: SunIcon,
-  water: CanIcon,
-  soil: ShovelIcon,
-  air: WindIcon,
-} as const;
 
 function Plant({ stage }: { stage: number }) {
   const stem = [150, 118, 96, 74, 58][stage] ?? 150;
@@ -62,7 +55,7 @@ function FactorButton({
   onPress: (id: FactorId) => void;
 }) {
   const factor = FACTOR_MAP[id];
-  const Icon = ICONS[id];
+  const Icon = FACTOR_ICONS[id];
   return (
     <button
       type="button"
