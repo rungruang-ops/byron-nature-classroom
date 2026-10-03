@@ -26,9 +26,9 @@ export type Save = {
 };
 
 export const INITIAL: Save = {
-  score: 250,
-  level: 5,
-  progress: 30,
+  score: 0,
+  level: 1,
+  progress: 0,
   learned: [],
   garden: 0,
   grows: 0,
@@ -53,7 +53,7 @@ function sanitize(raw: unknown): Save {
     learned,
     score: num(data.score, INITIAL.score),
     level: num(data.level, INITIAL.level),
-    progress: clamp(num(data.progress, INITIAL.progress), 0, 99),
+    progress: clamp(num(data.progress, INITIAL.progress), 0, 100),
     garden: clamp(num(data.garden, 0), 0, 6),
     grows: num(data.grows, 0),
     quizDone: Boolean(data.quizDone),
@@ -72,11 +72,15 @@ function clamp(n: number, min: number, max: number) {
   return Math.max(min, Math.min(max, n));
 }
 
+/**
+ * Reaching 100% levels up and leaves the bar full (so the last sprout lights);
+ * the next gain starts the new level's bar from zero.
+ */
 function withGains(save: Save, scoreAdd: number, progAdd: number): Save {
-  let progress = save.progress + progAdd;
+  let progress = (save.progress >= 100 ? 0 : save.progress) + progAdd;
   let level = save.level;
-  while (progress >= 100) {
-    progress -= 100;
+  if (progress >= 100) {
+    progress = 100;
     level += 1;
   }
   return { ...save, score: save.score + scoreAdd, progress, level };
@@ -138,7 +142,11 @@ export function ClassroomProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!ready) return;
-    localStorage.setItem(KEY, JSON.stringify(save));
+    try {
+      localStorage.setItem(KEY, JSON.stringify(save));
+    } catch {
+      /* storage full or unavailable (e.g. private mode): keep playing unsaved */
+    }
   }, [save, ready]);
 
   const api: Api = {
@@ -159,7 +167,7 @@ export function ClassroomProvider({ children }: { children: ReactNode }) {
       const next = withGains(prev, first ? 20 : 8, first ? 8 : 2);
       next.grows = prev.grows + 1;
       next.garden = Math.min(6, prev.garden + 1);
-      commit(next, prev.garden >= 6 ? "สวนเต็มแล้ว ไบรอ่นนดีใจมาก!" : first ? "ดอกไม้บาน! +20" : "ปลูกเพิ่มอีกต้น!");
+      commit(next, prev.garden >= 6 ? "สวนเต็มแล้ว ไบรอั่นดีใจมาก!" : first ? "ดอกไม้บาน! +20" : "ปลูกเพิ่มอีกต้น!");
     },
     awardQuizStep: () => {
       if (saveRef.current.quizDone) return;

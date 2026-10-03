@@ -12,7 +12,6 @@ import {
 } from "./content";
 import {
   BarnIcon,
-  CanIcon,
   ChatIcon,
   GearIcon,
   HelpIcon,
@@ -21,14 +20,12 @@ import {
   MusicIcon,
   NotebookIcon,
   PigFallback,
-  ShovelIcon,
   SpeakerIcon,
   SproutIcon,
   StarIcon,
-  SunIcon,
   ToolboxIcon,
-  WindIcon,
 } from "./icons";
+import { FACTOR_ICONS } from "./factor-icons";
 import { FlowerOverlay, GrowOverlay } from "./overlays";
 import { installAudioUnlock, playSfx, setMusicEnabled, setSfxEnabled, speak, unlockAudio } from "./sfx";
 import { ClassroomProvider, useClassroom } from "./state";
@@ -39,13 +36,6 @@ const NAV_ICONS = {
   garden: SproutIcon,
   notes: NotebookIcon,
   kit: ToolboxIcon,
-} as const;
-
-const FACTOR_ICONS = {
-  sun: SunIcon,
-  water: CanIcon,
-  soil: ShovelIcon,
-  air: WindIcon,
 } as const;
 
 function Art({
@@ -64,15 +54,15 @@ function Art({
   return <img src={src} alt={alt} className={className} draggable={false} onError={() => setOk(false)} />;
 }
 
-function Byron({ onGreet, pose }: { onGreet: (early: boolean) => void; pose: string }) {
+function Byron({ onGreet, pose }: { onGreet: () => void; pose: string }) {
   const [ok, setOk] = useState(true);
   const motion = pose ? `pig pose-${pose}` : "pig";
   return (
     <button
       type="button"
       className="pig-wrap"
-      onPointerDown={() => onGreet(true)}
-      onClick={() => onGreet(false)}
+      onPointerDown={() => unlockAudio()}
+      onClick={onGreet}
       aria-label={`${CHARACTER} ทักทาย`}
     >
       {ok ? (
@@ -166,7 +156,7 @@ function Desk() {
     if (key === "voice" && next) speak(line, true);
   }
 
-  const chapter = Math.max(1, save.level - 4);
+  const chapter = Math.max(1, save.level);
   const chapterName = chapter === 1 ? "พื้นฐาน" : "สำรวจต่อ";
 
   return (
@@ -234,9 +224,9 @@ function Desk() {
                     </p>
                     <Byron
                       pose={pose}
-                      onGreet={(early) => {
+                      onGreet={() => {
                         unlockAudio();
-                        if (!early) playSfx("tap");
+                        playSfx("tap");
                         say(INTRO_LINE);
                       }}
                     />
@@ -256,11 +246,9 @@ function Desk() {
                             type="button"
                             className={`factor factor-${factor.id}${on ? " is-on" : ""}`}
                             aria-pressed={on}
-                            onPointerDown={() => {
-                              unlockAudio();
-                              say(factor.line);
-                            }}
+                            onPointerDown={() => unlockAudio()}
                             onClick={() => {
+                              unlockAudio();
                               setPicked(factor.id);
                               say(factor.line);
                               playSfx("tap");
@@ -280,11 +268,9 @@ function Desk() {
                     <button
                       type="button"
                       className="go"
-                      onPointerDown={() => {
-                        unlockAudio();
-                        say(LINES.go);
-                      }}
+                      onPointerDown={() => unlockAudio()}
                       onClick={() => {
+                        unlockAudio();
                         setOverlay("grow");
                         playSfx("tap");
                         say(LINES.go);
@@ -498,7 +484,7 @@ function Kit({ save }: { save: { learned: FactorId[]; garden: number; flowerClea
     { name: "ดอกไม้บาน", earned: save.garden > 0, hint: "ปลูกต้นไม้สำเร็จ" },
     { name: "นักเก็บดอกไม้", earned: save.flowerClear, hint: "เก็บดอกไม้ครบ" },
     { name: "ผ่านคำถาม", earned: save.quizDone, hint: "ตอบคำถามครบ" },
-    { name: "ระดับสูงขึ้น", earned: save.level > 5, hint: "เลื่อนระดับ" },
+    { name: "ระดับสูงขึ้น", earned: save.level > 1, hint: "เลื่อนระดับ" },
   ];
   return (
     <section className="page">
