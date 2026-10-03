@@ -56,12 +56,10 @@ function FactorButton({
   id,
   done,
   onPress,
-  onWarm,
 }: {
   id: FactorId;
   done: boolean;
   onPress: (id: FactorId) => void;
-  onWarm?: () => void;
 }) {
   const factor = FACTOR_MAP[id];
   const Icon = ICONS[id];
@@ -70,9 +68,6 @@ function FactorButton({
       type="button"
       className={`factor factor-${id}${done ? " is-done" : ""}`}
       aria-pressed={done}
-      onPointerDown={() => {
-        if (!done) onWarm?.();
-      }}
       onClick={() => onPress(id)}
     >
       <span className="factor-ico">
@@ -207,7 +202,6 @@ export function GrowOverlay({
                 key={factor.id}
                 id={factor.id}
                 done={applied.includes(factor.id)}
-                onWarm={() => say(factor.line)}
                 onPress={give}
               />
             ))}
@@ -215,7 +209,7 @@ export function GrowOverlay({
         )}
         {phase === "quiz" && card && (
           <div className="quiz">
-            <p className="quiz-kicker">ตรวจสอบความเข้าใจ {qIndex + 1}/3</p>
+            <p className="quiz-kicker">ตรวจสอบความเข้าใจ {qIndex + 1}/{QUIZ.length}</p>
             <p className="quiz-q">{card.q}</p>
             <div className="quiz-choices">
               {card.choices.map((choice, index) => (
